@@ -27,7 +27,7 @@ h1 {
 
 /* Контейнер, который растягивается */
 .game-area {
-    flex: 1; /* занимает всё оставшееся пространство */
+    flex: 1;
     position: relative;
     background-color: #ccc;
     margin: 0 auto;
@@ -35,13 +35,31 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
+    border: 2px solid #000;
 }
 
 /* Танк */
 .tank {
     position: absolute;
-    width: 50px;
-    height: 50px;
+    width: 100px;
+    height: 100px;
     top: 0;
     left: 0;
+    transform-origin: center;
+}
+
+/* Яблоки */
+.apple {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: red;
+    border-radius: 50%;
+}
+
+/* Счёт */
+#score {
+    font-size: 20px;
+    text-align: center;
+    margin: 10px;
 }

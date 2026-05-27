@@ -1,25 +1,63 @@
 const greenTank = document.getElementById('greenTank');
-const redTank = document.getElementById('redTank');
 const gameArea = document.querySelector('.game-area');
+const applesContainer = document.getElementById('apples');
+const scoreDisplay = document.getElementById('score');
 
-// Позиции и углы танков
 let greenTankPosition = { x: 100, y: 100 };
 let greenTankAngle = 0;
-
-let redTankPosition = { x: 300, y: 300 };
-let redTankAngle = 0;
+let greenTankScale = 1;
+let score = 0;
+let gameOver = false;
 
 const keysPressed = {};
 
-function updateTankPosition(tank, position, angle) {
-    tank.style.transform = `translate(${position.x}px, ${position.y}px) rotate(${angle}deg)`;
+function updateTankPosition(tank, position, angle, scale) {
+    tank.style.transform =
+        `translate(${position.x}px, ${position.y}px) rotate(${angle}deg) scale(${scale})`;
 }
 
-// Инициализация танков
-updateTankPosition(greenTank, greenTankPosition, greenTankAngle);
-updateTankPosition(redTank, redTankPosition, redTankAngle);
+// 🍎 Яблоки
+function spawnApple() {
+    const apple = document.createElement('div');
 
-// Обработка событий клавиш
+    apple.classList.add('apple');
+
+    apple.style.left =
+        Math.random() * (gameArea.offsetWidth - 20) + 'px';
+
+    apple.style.top =
+        Math.random() * (gameArea.offsetHeight - 20) + 'px';
+
+    applesContainer.appendChild(apple);
+}
+
+// 🍎 Проверка столкновения
+function checkAppleCollision() {
+    const tankRect = greenTank.getBoundingClientRect();
+    const apples = document.querySelectorAll('.apple');
+
+    apples.forEach(apple => {
+        const appleRect = apple.getBoundingClientRect();
+
+        if (
+            tankRect.left < appleRect.right &&
+            tankRect.right > appleRect.left &&
+            tankRect.top < appleRect.bottom &&
+            tankRect.bottom > appleRect.top
+        ) {
+            apple.remove();
+
+            greenTankScale += 0.1;
+
+            score++;
+            scoreDisplay.textContent = "Очки: " + score;
+
+            spawnApple();
+        }
+    });
+}
+
+// 🎮 Управление
 document.addEventListener('keydown', (e) => {
     keysPressed[e.code] = true;
 });
@@ -28,55 +66,117 @@ document.addEventListener('keyup', (e) => {
     keysPressed[e.code] = false;
 });
 
+// 🚀 Игровой цикл
 function updateGame() {
-    const step = 5; // шаг движения
-    const turnStep = 5; // шаг поворота
 
-    // Управление зеленым танком (стрелки)
+    // 🛑 Остановка игры
+    if (gameOver) return;
+
+    const step = 5;
+    const turnStep = 5;
+
+    // Движение
     if (keysPressed['ArrowUp']) {
-        greenTankPosition.x += step * Math.cos((greenTankAngle * Math.PI) / 180);
-        greenTankPosition.y += step * Math.sin((greenTankAngle * Math.PI) / 180);
+        greenTankPosition.x +=
+            step * Math.cos((greenTankAngle * Math.PI) / 180);
+
+        greenTankPosition.y +=
+            step * Math.sin((greenTankAngle * Math.PI) / 180);
     }
+
     if (keysPressed['ArrowDown']) {
-        greenTankPosition.x -= step * Math.cos((greenTankAngle * Math.PI) / 180);
-        greenTankPosition.y -= step * Math.sin((greenTankAngle * Math.PI) / 180);
+        greenTankPosition.x -=
+            step * Math.cos((greenTankAngle * Math.PI) / 180);
+
+        greenTankPosition.y -=
+            step * Math.sin((greenTankAngle * Math.PI) / 180);
     }
+
+    // Поворот
     if (keysPressed['ArrowLeft']) {
         greenTankAngle -= turnStep;
     }
+
     if (keysPressed['ArrowRight']) {
         greenTankAngle += turnStep;
     }
 
-    // Управление красным танком (WASD)
-    if (keysPressed['KeyW']) {
-        redTankPosition.x += step * Math.cos((redTankAngle * Math.PI) / 180);
-        redTankPosition.y += step * Math.sin((redTankAngle * Math.PI) / 180);
-    }
-    if (keysPressed['KeyS']) {
-        redTankPosition.x -= step * Math.cos((redTankAngle * Math.PI) / 180);
-        redTankPosition.y -= step * Math.sin((redTankAngle * Math.PI) / 180);
-    }
-    if (keysPressed['KeyA']) {
-        redTankAngle -= turnStep;
-    }
-    if (keysPressed['KeyD']) {
-        redTankAngle += turnStep;
+    // 📦 Ограничение движения
+    const tankRect = greenTank.getBoundingClientRect();
+    const gameRect = gameArea.getBoundingClientRect();
+
+    // Левая граница
+    if (tankRect.left < gameRect.left) {
+        greenTankPosition.x += gameRect.left - tankRect.left;
     }
 
-    // Ограничение движения внутри игровой области
-    greenTankPosition.x = Math.max(0, Math.min(gameArea.offsetWidth - greenTank.getBoundingClientRect().width, greenTankPosition.x));
-    greenTankPosition.y = Math.max(0, Math.min(gameArea.offsetHeight - greenTank.getBoundingClientRect().height, greenTankPosition.y));
+    // Правая граница
+    if (tankRect.right > gameRect.right) {
+        greenTankPosition.x -= tankRect.right - gameRect.right;
+    }
 
-    redTankPosition.x = Math.max(0, Math.min(gameArea.offsetWidth - redTank.getBoundingClientRect().width, redTankPosition.x));
-    redTankPosition.y = Math.max(0, Math.min(gameArea.offsetHeight - redTank.getBoundingClientRect().height, redTankPosition.y));
+    // Верхняя граница
+    if (tankRect.top < gameRect.top) {
+        greenTankPosition.y += gameRect.top - tankRect.top;
+    }
 
-    // Обновление позиций танков
-    updateTankPosition(greenTank, greenTankPosition, greenTankAngle);
-    updateTankPosition(redTank, redTankPosition, redTankAngle);
+    // Нижняя граница
+    if (tankRect.bottom > gameRect.bottom) {
+        greenTankPosition.y -= tankRect.bottom - gameRect.bottom;
+    }
+
+    // Обновление позиции
+    updateTankPosition(
+        greenTank,
+        greenTankPosition,
+        greenTankAngle,
+        greenTankScale
+    );
+
+    checkAppleCollision();
+
+    // 🎉 Победа
+    if (score >= 400) {
+
+        gameOver = true;
+
+        const winText = document.createElement('div');
+
+        winText.textContent = 'YOU PASSED THE GAME!';
+
+        winText.style.position = 'fixed';
+        winText.style.top = '50%';
+        winText.style.left = '50%';
+
+        winText.style.transform = 'translate(-50%, -50%)';
+
+        winText.style.fontSize = '80px';
+        winText.style.fontWeight = 'bold';
+
+        winText.style.color = '#00ff00';
+
+        winText.style.textShadow =
+            '0 0 20px #00ff00, 0 0 40px #00aa00';
+
+        winText.style.zIndex = '9999';
+
+        winText.style.fontFamily = 'Arial, sans-serif';
+
+        document.body.appendChild(winText);
+
+        return;
+    }
 
     requestAnimationFrame(updateGame);
 }
 
-// Запуск обновления игры
+// 🚀 Запуск
+updateTankPosition(
+    greenTank,
+    greenTankPosition,
+    greenTankAngle,
+    greenTankScale
+);
+
+spawnApple();
 updateGame();
