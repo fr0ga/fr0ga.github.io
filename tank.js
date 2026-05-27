@@ -50,7 +50,7 @@ function checkAppleCollision() {
             greenTankScale += 0.1;
 
             score++;
-            scoreDisplay.textContent = "Очки: " + score;
+            scoreDisplay.textContent = "Score: " + score;
 
             spawnApple();
         }
