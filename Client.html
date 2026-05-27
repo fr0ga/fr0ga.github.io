@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smooth Tank Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin-top: 50px;
+    }
+    h2 {
+      text-align: center;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      text-align: center;
+    }
+    .button{
+      text-align: center;
+    }
+    .game-area {
+      position: relative;
+      width: 1000px;
+      height: 450px;
+      border: 1px solid black;
+      margin: 20px auto;
+      background-color: lightgray;
+      overflow: hidden;
+    }
+    svg.tank {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<h2>Tank Game</h2>
+<div class="button">
+  <button id="join">Join the Game</button>
+</div>
+<div id="status">Status: Not connected</div>
+<div class="game-area">
+  <!-- Зеленый танк -->
+  <svg class="tank" id="greenTank" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <rect x="20" y="25" width="60" height="50" fill="green" />
+    <circle cx="50" cy="50" r="20" fill="black" />
+    <rect x="45" y="45" width="60" height="10" fill="green" />
+  </svg>
+
+  <!-- Красный танк -->
+  <svg class="tank" id="redTank" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <rect x="20" y="25" width="60" height="50" fill="red" />
+    <circle cx="50" cy="50" r="20" fill="black" />
+    <rect x="45" y="45" width="60" height="10" fill="red" />
+  </svg>
+</div>
+
+<script>
+  const ws = new WebSocket('ws://localhost:80');
+  const greenTank = document.getElementById('greenTank');
+  const redTank = document.getElementById('redTank');
+  const gameArea = document.querySelector('.game-area');
+
+  let greenTankPosition = { x: 100, y: 100 };
+  let greenTankAngle = 0;
+
+  let redTankPosition = { x: 100, y: 200 };
+  let redTankAngle = 0;
+
+  const keysPressed = {};
+  let player = null; // Текущий игрок (green или red)
+
+  ws.onopen = () => {
+    document.getElementById('status').innerText = 'Status: Connected to the server';
+    console.log('WebSocket connection established.');
+  };
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log('Received:', data);
+
+    if (data.type === 'assign') {
+      player = data.player;
+      document.getElementById('status').innerText = `You are assigned as ${player} tank`;
+      console.log(`Player role assigned: ${player}`);
+    } else if (data.type === 'start') {
+      document.getElementById('status').innerText = 'Game has started!';
+      console.log('Game started!');
+      updateGame();
+    } else if (data.type === 'update') {
+      if (data.player === 'green') {
+        greenTankPosition.x = data.x;
+        greenTankPosition.y = data.y;
+        greenTankAngle = data.angle;
+      } else if (data.player === 'red') {
+        redTankPosition.x = data.x;
+        redTankPosition.y = data.y;
+        redTankAngle = data.angle;
+      }
+      updateTankPosition();
+    } else if (data.type === 'error') {
+      alert(data.message);
+      console.error('Error:', data.message);
+    }
+  };
+
+  ws.onclose = () => {
+    document.getElementById('status').innerText = 'Status: Disconnected from the server';
+    console.log('WebSocket connection closed.');
+  };
+
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+
+  document.getElementById('join').onclick = () => {
+    const joinMessage = { type: 'join' };
+    ws.send(JSON.stringify(joinMessage));
+    console.log('Join request sent:', joinMessage);
+  };
+
+  document.addEventListener('keydown', (e) => {
+    keysPressed[e.code] = true;
+  });
+
+  document.addEventListener('keyup', (e) => {
+    keysPressed[e.code] = false;
+  });
+
+  function updateTankPosition() {
+    greenTank.style.transform = `translate(${greenTankPosition.x}px, ${greenTankPosition.y}px) rotate(${greenTankAngle}deg)`;
+    redTank.style.transform = `translate(${redTankPosition.x}px, ${redTankPosition.y}px) rotate(${redTankAngle}deg)`;
+  }
+
+  function updateGame() {
+    const step = 5;
+    const turnStep = 5;
+
+    if (player === 'green') {
+      if (keysPressed['ArrowUp']) {
+        greenTankPosition.x += step * Math.cos((greenTankAngle * Math.PI) / 180);
+        greenTankPosition.y += step * Math.sin((greenTankAngle * Math.PI) / 180);
+      }
+      if (keysPressed['ArrowDown']) {
+        greenTankPosition.x -= step * Math.cos((greenTankAngle * Math.PI) / 180);
+        greenTankPosition.y -= step * Math.sin((greenTankAngle * Math.PI) / 180);
+      }
+      if (keysPressed['ArrowLeft']) {
+        greenTankAngle -= turnStep;
+      }
+      if (keysPressed['ArrowRight']) {
+        greenTankAngle += turnStep;
+      }
+    } else if (player === 'red') {
+      if (keysPressed['ArrowUp']) {
+        redTankPosition.x += step * Math.cos((redTankAngle * Math.PI) / 180);
+        redTankPosition.y += step * Math.sin((redTankAngle * Math.PI) / 180);
+      }
+      if (keysPressed['ArrowDown']) {
+        redTankPosition.x -= step * Math.cos((redTankAngle * Math.PI) / 180);
+        redTankPosition.y -= step * Math.sin((redTankAngle * Math.PI) / 180);
+      }
+      if (keysPressed['ArrowLeft']) {
+        redTankAngle -= turnStep;
+      }
+      if (keysPressed['ArrowRight']) {
+        redTankAngle += turnStep;
+      }
+    }
+
+    // Ограничение движения внутри игровой области (серый прямоугольник)
+    const gameAreaRect = gameArea.getBoundingClientRect();
+
+    greenTankPosition.x = Math.max(0, Math.min(gameAreaRect.width - 50, greenTankPosition.x));
+    greenTankPosition.y = Math.max(0, Math.min(gameAreaRect.height - 50, greenTankPosition.y));
+
+    redTankPosition.x = Math.max(0, Math.min(gameAreaRect.width - 50, redTankPosition.x));
+    redTankPosition.y = Math.max(0, Math.min(gameAreaRect.height - 50, redTankPosition.y));
+
+    updateTankPosition();
+
+    // Отправка движения на сервер
+    ws.send(JSON.stringify({
+      type: 'move',
+      player: player,
+      x: player === 'green' ? greenTankPosition.x : redTankPosition.x,
+      y: player === 'green' ? greenTankPosition.y : redTankPosition.y,
+      angle: player === 'green' ? greenTankAngle : redTankAngle
+    }));
+
+    requestAnimationFrame(updateGame);
+  }
+</script>
+</body>
+</html>
