@@ -2,6 +2,7 @@ const greenTank = document.getElementById('greenTank');
 const gameArea = document.querySelector('.game-area');
 const applesContainer = document.getElementById('apples');
 const scoreDisplay = document.getElementById('score');
+const spikes = document.getElementById('spikes'); // контейнер для шипов
 
 let greenTankPosition = { x: 100, y: 100 };
 let greenTankAngle = 0;
@@ -10,8 +11,9 @@ let score = 0;
 let gameOver = false;
 
 const keysPressed = {};
-let targetPoint = null; // цель для телефона
+let targetPoint = null;
 
+// 📌 Обновление позиции танка
 function updateTankPosition(tank, position, angle, scale) {
     tank.style.transform =
         `translate(${position.x}px, ${position.y}px) rotate(${angle}deg) scale(${scale})`;
@@ -22,7 +24,7 @@ function spawnApple() {
     const apple = document.createElement('div');
     apple.classList.add('apple');
     apple.style.left = Math.random() * (gameArea.offsetWidth - 20) + 'px';
-    apple.style.top = Math.random() * (gameArea.offsetHeight - 20) + 'px';
+    apple.style.top = '0px'; // всегда сверху
     applesContainer.appendChild(apple);
 }
 
@@ -33,7 +35,7 @@ const tankColors = [
 ];
 let currentColorIndex = 0;
 
-// 🍎 Проверка столкновения
+// 🍎 Проверка столкновения танка с яблоками
 function checkAppleCollision() {
     const tankRect = greenTank.getBoundingClientRect();
     const apples = document.querySelectorAll('.apple');
@@ -66,6 +68,38 @@ function checkAppleCollision() {
     });
 }
 
+// ❌ Проверка падения яблок на шипы
+function checkAppleOnSpikes() {
+    const spikesRect = spikes.getBoundingClientRect();
+    const apples = document.querySelectorAll('.apple');
+
+    apples.forEach(apple => {
+        const appleRect = apple.getBoundingClientRect();
+        if (appleRect.bottom >= spikesRect.top) {
+            // Яблоко коснулось шипов → проигрыш
+            gameOver = true;
+
+            const loseText = document.createElement('div');
+            loseText.textContent = 'YOU LOST THE GAME';
+            loseText.style.position = 'fixed';
+            loseText.style.top = '50%';
+            loseText.style.left = '50%';
+            loseText.style.transform = 'translate(-50%, -50%)';
+            loseText.style.fontSize = '80px';
+            loseText.style.fontWeight = 'bold';
+            loseText.style.color = '#ff0000';
+            loseText.style.textShadow = '0 0 20px #ff0000, 0 0 40px #aa0000';
+            loseText.style.zIndex = '9999';
+            loseText.style.fontFamily = 'Arial, sans-serif';
+            document.body.appendChild(loseText);
+
+            setTimeout(() => {
+                location.reload(); // перезапуск игры через 5 сек
+            }, 5000);
+        }
+    });
+}
+
 // 🎮 Управление клавиатурой
 document.addEventListener('keydown', (e) => {
     keysPressed[e.code] = true;
@@ -84,7 +118,6 @@ document.addEventListener('touchstart', (e) => {
 
     targetPoint = { x, y };
 });
-
 document.addEventListener('touchend', () => {
     targetPoint = null;
 });
@@ -114,15 +147,10 @@ function updateGame() {
         const dy = targetPoint.y - greenTankPosition.y;
 
         const angleToTarget = Math.atan2(dy, dx) * 180 / Math.PI;
-
-        // нормализуем разницу углов в диапазон [-180, 180]
         let angleDiff = angleToTarget - greenTankAngle;
         angleDiff = ((angleDiff + 180) % 360) - 180;
-
-        // плавный поворот к цели
         greenTankAngle += angleDiff * 0.1;
 
-        // движение вперёд
         greenTankPosition.x += step * Math.cos((greenTankAngle * Math.PI) / 180);
         greenTankPosition.y += step * Math.sin((greenTankAngle * Math.PI) / 180);
 
@@ -148,10 +176,18 @@ function updateGame() {
         greenTankPosition.y -= tankRect.bottom - gameRect.bottom;
     }
 
+    // 📉 Падение яблок
+    const apples = document.querySelectorAll('.apple');
+    apples.forEach(apple => {
+        let top = parseFloat(apple.style.top);
+        apple.style.top = (top + 2) + "px"; // скорость падения
+    });
+
     updateTankPosition(greenTank, greenTankPosition, greenTankAngle, greenTankScale);
     checkAppleCollision();
+    checkAppleOnSpikes();
 
-    // 🎉 Победа
+    // 🎉 Победа (код не меняем)
     if (score >= 400) {
         gameOver = true;
         const winText = document.createElement('div');
