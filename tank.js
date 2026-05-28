@@ -190,6 +190,10 @@ function updateGame() {
     // 🎉 Победа (код не меняем)
     if (score >= 400) {
         gameOver = true;
+
+        // убираем шипы
+        spikes.style.display = "none";
+
         const winText = document.createElement('div');
         winText.textContent = 'YOU PASSED THE GAME!';
         winText.style.position = 'fixed';
