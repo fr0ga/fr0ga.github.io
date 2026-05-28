@@ -62,6 +62,32 @@ document.addEventListener('keydown', (e) => {
     keysPressed[e.code] = true;
 });
 
+// 📱 Управление на телефоне
+document.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const gameRect = gameArea.getBoundingClientRect();
+
+    const x = touch.clientX;
+    const y = touch.clientY;
+
+    if (x < gameRect.left) {
+        keysPressed['ArrowLeft'] = true;
+    } else if (x > gameRect.right) {
+        keysPressed['ArrowRight'] = true;
+    } else if (y < gameRect.top) {
+        keysPressed['ArrowUp'] = true;
+    } else if (y > gameRect.bottom) {
+        keysPressed['ArrowDown'] = true;
+    }
+});
+
+document.addEventListener('touchend', () => {
+    keysPressed['ArrowUp'] = false;
+    keysPressed['ArrowDown'] = false;
+    keysPressed['ArrowLeft'] = false;
+    keysPressed['ArrowRight'] = false;
+});
+
 document.addEventListener('keyup', (e) => {
     keysPressed[e.code] = false;
 });
@@ -169,6 +195,9 @@ function updateGame() {
 
     requestAnimationFrame(updateGame);
 }
+
+
+
 
 // 🚀 Запуск
 updateTankPosition(
