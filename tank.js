@@ -31,6 +31,15 @@ function spawnApple() {
     applesContainer.appendChild(apple);
 }
 
+// 🎨 16 стандартных цветов
+const tankColors = [
+    "blue", "yellow",
+    "orange", "purple", "cyan", "magenta",
+    "lime", "pink", "teal", "brown",
+    "navy", "olive"
+];
+let currentColorIndex = 0;
+
 // 🍎 Проверка столкновения
 function checkAppleCollision() {
     const tankRect = greenTank.getBoundingClientRect();
@@ -48,9 +57,20 @@ function checkAppleCollision() {
             apple.remove();
 
             greenTankScale += 0.1;
-
             score++;
             scoreDisplay.textContent = "Score: " + score;
+
+            // Меняем цвет танка
+            currentColorIndex = (currentColorIndex + 1) % tankColors.length;
+            const newColor = tankColors[currentColorIndex];
+
+            // Меняем цвет всех частей танка, кроме черных
+            greenTank.querySelectorAll("rect, circle").forEach(part => {
+                const currentFill = part.getAttribute("fill");
+                if (currentFill !== "black") {
+                    part.setAttribute("fill", newColor);
+                }
+            });
 
             spawnApple();
         }

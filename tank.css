@@ -47,6 +47,10 @@ h1 {
     left: 0;
     transform-origin: center;
 }
+#greenTank rect,
+#greenTank circle {
+    transition: fill 0.75s ease; /* плавная смена цвета */
+}
 
 /* Яблоки */
 .apple {
