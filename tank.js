@@ -95,7 +95,7 @@ function checkAppleOnSpikes() {
 
             setTimeout(() => {
                 location.reload(); // перезапуск игры через 5 сек
-            }, 5000);
+            }, 1000);
         }
     });
 }
