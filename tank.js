@@ -70,7 +70,15 @@ document.addEventListener('touchstart', (e) => {
     const x = touch.clientX;
     const y = touch.clientY;
 
-    if (x < gameRect.left) {
+    if (
+        x >= gameRect.left &&
+        x <= gameRect.right &&
+        y >= gameRect.top &&
+        y <= gameRect.bottom
+    ) {
+        // Тап внутри поля → ехать вперёд
+        keysPressed['ArrowUp'] = true;
+    } else if (x < gameRect.left) {
         keysPressed['ArrowLeft'] = true;
     } else if (x > gameRect.right) {
         keysPressed['ArrowRight'] = true;
