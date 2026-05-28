@@ -52,13 +52,26 @@ h1 {
     transition: fill 0.5s ease; /* плавная смена цвета */
 }
 
-/* Яблоки */
+/* 🍎 Яблоки с листиком */
 .apple {
     position: absolute;
     width: 20px;
     height: 20px;
     background: red;
     border-radius: 50%;
+}
+
+/* 🌿 Листик */
+.apple::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 10px;
+    width: 8px;
+    height: 5px;
+    background: green;
+    border-radius: 50% 50% 0 50%;
+    transform: rotate(-25deg);
 }
 
 /* Счёт */
