@@ -34,7 +34,7 @@ function spawnApple() {
 // 🎨 16 стандартных цветов
 const tankColors = [
     "blue", "yellow",
-    "orange", "purple", "cyan", "magenta",
+    "orange", "purple",  "magenta", "cyan",
     "lime", "pink", "teal", "brown",
     "navy", "olive"
 ];
