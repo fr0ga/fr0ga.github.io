@@ -93,9 +93,10 @@ function checkAppleOnSpikes() {
             loseText.style.fontFamily = 'Arial, sans-serif';
             document.body.appendChild(loseText);
 
-            setTimeout(() => {
-                location.reload(); // перезапуск игры через 5 сек
-            }, 1000);
+            // слушаем любую клавишу для рестарта
+            document.addEventListener('keydown', () => {
+                location.reload();
+            }, { once: true }); // once → чтобы сработало один раз
         }
     });
 }
